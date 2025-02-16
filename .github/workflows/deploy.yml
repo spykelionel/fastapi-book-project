@@ -20,9 +20,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Stop and remove existing containers
             cd /home/afa/projects/fastapi-book-project
+            docker-compose down
+
+            # Pull latest code
             git pull origin main
-            source /home/afa/projects/fastapi-book-project/venv/bin/activate
-            pip install -r requirements.txt
-            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart fastapi_book_project
+
+            # Rebuild and restart Docker containers
+            docker-compose up -d --build
+
+            # Restart related services
             echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl daemon-reload
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart fastapi_book_project
+
+            # Verify service status
+            docker ps
+            sudo systemctl status fastapi_book_project
+            sudo systemctl status nginx
