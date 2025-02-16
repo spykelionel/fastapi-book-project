@@ -37,5 +37,5 @@ jobs:
 
             # Verify service status
             docker ps
-            sudo systemctl status fastapi_book_project
-            sudo systemctl status nginx
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo systemctl status fastapi_book_project
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo systemctl status nginx
