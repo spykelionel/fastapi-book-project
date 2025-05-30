@@ -35,8 +35,8 @@ jobs:
     - name: Deploy to server via SSH
       uses: appleboy/ssh-action@v0.1.7
       with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USER }}
+        host: "54.174.247.8"
+        username: "cd fasubuntu"
         key: "-----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
 NhAAAAAwEAAQAAAgEAyriUKXCKCSTqaithHZqoViwS/eQzuw1GfGcslXp62sb4Xu+Y8EK9
