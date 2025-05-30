@@ -1,4 +1,4 @@
-name: CI/CD Pipeline       
+name: deploy
 
 on:
   push:
@@ -6,88 +6,36 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Stop and remove existing containers
+            cd /home/afa/projects/fastapi-book-project
+            docker-compose down
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: "kelly09"
+            # Pull latest code
+            git pull origin main
 
-        password: "dckr_pat_3vN7r6KlZ2ZjAFwNo89O8wNdKwA"
+            # Rebuild and restart Docker containers
+            docker-compose up -d --build
 
+            # Restart related services
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl daemon-reload
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart fastapi_book_project
 
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-book-project:latest
-
-    - name: Deploy to server via SSH
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: "54.174.247.8"
-        username: "cd fasubuntu"
-        key: "-----BEGIN OPENSSH PRIVATE KEY-----
-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
------END OPENSSH PRIVATE KEY-----"
-        script: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-book-project:latest
-          docker stop fastapi_book_project || true
-          docker rm fastapi_book_project || true
-          docker run -d --name fastapi_book_project -p 8213:8213 ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-book-project:latest
+            # Verify service status
+            docker ps
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo systemctl status fastapi_book_project
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo systemctl status nginx
